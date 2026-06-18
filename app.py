@@ -9,12 +9,20 @@ from google.oauth2.service_account import Credentials
 app = Flask(__name__)
 app.secret_key = "super_secret_secure_key_for_bus_tracker"
 
+# --- TIMEZONE FIX FOR INDIA (IST) ---
+def get_ist_now():
+    # Grab the server's UTC time and explicitly add 5 hours & 30 mins
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
+    return utc_now + datetime.timedelta(hours=5, minutes=30)
+
+def generate_id(prefix):
+    return f"{prefix}-{int(get_ist_now().timestamp())}"
+
 # --- GOOGLE SHEETS SETUP ---
 def get_sheet():
     scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     creds = Credentials.from_service_account_file('credentials.json', scopes=scopes)
     client = gspread.authorize(creds)
-    # Using the foolproof FULL URL method
     sheet_url = "https://docs.google.com/spreadsheets/d/1nVdtY1NwTOT0sl5T3pOPKxGY_kqsKKLsrB9H455Spdg/edit"
     return client.open_by_url(sheet_url)
 
@@ -44,10 +52,9 @@ def login():
             session["user"] = user_match["Username"]
             session["role"] = user_match["Role"]
             
-            # Isolated Audit Logging to prevent random API crashes
             try:
                 sheet.worksheet("Audit_Logs").append_row([
-                    f"LOG-{int(datetime.datetime.now().timestamp())}", str(datetime.datetime.now()), session["user"], "Login", f"Logged in as {session['role']}"
+                    generate_id("LOG"), get_ist_now().strftime("%Y-%m-%d %H:%M:%S"), session["user"], "Login", f"Logged in as {session['role']}"
                 ])
             except:
                 pass 
@@ -78,8 +85,8 @@ def submit_scan():
     data = request.json
     try:
         sheet = get_sheet()
-        record_id = f"REC-{int(datetime.datetime.now().timestamp())}"
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        record_id = generate_id("REC")
+        timestamp = get_ist_now().strftime("%Y-%m-%d %H:%M:%S")
         
         sheet.worksheet("Scan_Records").append_row([
             record_id, timestamp, data.get("bus_number").strip().upper(),
@@ -87,7 +94,6 @@ def submit_scan():
         ])
         return jsonify({"success": True, "message": "Saved successfully!"})
     except Exception as e:
-        # Prevent 200 OK errors from crashing the scanner (gspread quirk)
         if "200" in str(e):
             return jsonify({"success": True, "message": "Saved successfully!"})
         return jsonify({"success": False, "message": str(e)}), 500
@@ -120,12 +126,12 @@ def add_bus():
         bus_number = request.form.get("bus_number").strip().upper()
         try:
             sheet = get_sheet()
-            bus_id = f"BUS-{int(datetime.datetime.now().timestamp())}"
+            bus_id = generate_id("BUS")
             sheet.worksheet("Buses").append_row([bus_id, bus_number, "Active"])
             
             try:
                 sheet.worksheet("Audit_Logs").append_row([
-                    f"LOG-{int(datetime.datetime.now().timestamp())}", str(datetime.datetime.now()), session["user"], "Add Bus", f"Added {bus_number}"
+                    generate_id("LOG"), get_ist_now().strftime("%Y-%m-%d %H:%M:%S"), session["user"], "Add Bus", f"Added {bus_number}"
                 ])
             except:
                 pass
@@ -151,12 +157,12 @@ def export_data():
                 cw.writerow(r.values())
                 
         output = make_response(si.getvalue())
-        output.headers["Content-Disposition"] = f"attachment; filename=fleet_export_{int(datetime.datetime.now().timestamp())}.csv"
+        output.headers["Content-Disposition"] = f"attachment; filename=fleet_export_{int(get_ist_now().timestamp())}.csv"
         output.headers["Content-type"] = "text/csv"
         
         try:
             sheet.worksheet("Audit_Logs").append_row([
-                f"LOG-{int(datetime.datetime.now().timestamp())}", str(datetime.datetime.now()), session["user"], "Data Export", "Exported Scan_Records to CSV"
+                generate_id("LOG"), get_ist_now().strftime("%Y-%m-%d %H:%M:%S"), session["user"], "Data Export", "Exported Scan_Records to CSV"
             ])
         except:
             pass
