@@ -1,38 +1,186 @@
-<table class="min-w-full divide-y divide-gray-200">
-    <thead class="bg-gray-50">
-        <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TIMESTAMP</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">VEHICLE</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DIRECTION</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOAD</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KM READING</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OPERATOR</th>
-        </tr>
-    </thead>
-    <tbody class="bg-white divide-y divide-gray-200">
-        {% for record in records|reverse %}
-        <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ record.Timestamp }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ record.Bus_Number }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                {% if record.Direction == 'IN' %}
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">IN</span>
-                {% else %}
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">OUT</span>
-                {% endif %}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                {% if record.Load == 'Filled' %}
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Filled</span>
-                {% else %}
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Empty</span>
-                {% endif %}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                {{ record.KM_Reading }} <span class="text-xs text-gray-400">km</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ record.Scanned_By }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+
+    <nav class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h1 class="text-xl font-bold text-slate-900">Fleet Command</h1>
+            <span class="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold tracking-wider uppercase ml-2">{{ role }}</span>
+        </div>
+        <div class="flex items-center gap-4">
+            {% if role in ['Super_Admin', 'Operations_Admin', 'Report_Admin'] %}
+            <a href="/admin/export" class="px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 font-medium rounded-lg text-sm transition-colors">
+                Download CSV Report
+            </a>
+            {% endif %}
+            <a href="/logout" class="text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors">Sign Out &rarr;</a>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        
+        {% if role in ['Super_Admin', 'Fleet_Admin'] %}
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Register New Vehicle</h2>
+                <p class="text-sm text-slate-500">Generate a unique QR code for the fleet registry.</p>
+            </div>
+            <form action="/admin/add-bus" method="POST" class="flex gap-3">
+                <input type="text" name="bus_number" placeholder="E.G. GJ04 EA 2355" required class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 uppercase">
+                <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors">Add to Fleet</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[500px]">
+                <div class="p-6 border-b border-slate-100">
+                    <h3 class="text-base font-bold text-slate-900">Active Fleet</h3>
+                </div>
+                <div class="overflow-y-auto flex-1 p-0">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50 sticky top-0">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Bus Number</th>
+                                <th class="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for bus in buses|reverse %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800">{{ bus.Bus_Number }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <button onclick="showQR('{{ bus.Bus_Number }}')" class="text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-md transition-colors">View QR</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[500px]">
+                <div class="p-6 border-b border-slate-100">
+                    <h3 class="text-base font-bold text-slate-900">Real-Time Movement Logs</h3>
+                </div>
+                <div class="overflow-y-auto flex-1 p-0">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50 sticky top-0">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Timestamp</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Vehicle</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Direction</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Load</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">KM Reading</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Operator</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for record in records|reverse %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ record.Timestamp }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{{ record.Bus_Number }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if record.Direction == 'IN' %}
+                                    <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-blue-50 text-blue-700">IN</span>
+                                    {% else %}
+                                    <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-orange-50 text-orange-700">OUT</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if record.Load == 'Filled' %}
+                                    <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-emerald-50 text-emerald-700">Filled</span>
+                                    {% else %}
+                                    <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-slate-100 text-slate-600">Empty</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
+                                    {{ record.KM_Reading }} <span class="text-xs text-slate-400 font-normal">km</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ record.Scanned_By }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% if role in ['Super_Admin', 'Audit_Admin'] %}
+        <div class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[300px]">
+            <div class="p-6 border-b border-slate-100 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <h3 class="text-base font-bold text-slate-900">System Audit Logs (Read-Only)</h3>
+            </div>
+            <div class="overflow-y-auto flex-1 p-0">
+                <table class="min-w-full divide-y divide-slate-100">
+                    <thead class="bg-slate-50 sticky top-0">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Timestamp</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Action</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for log in audit_logs|reverse %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-500">{{ log.Timestamp }}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-slate-800">{{ log.User }}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-sm text-indigo-600 font-medium">{{ log.Action }}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-600">{{ log.Details }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full mx-4 relative">
+            <button onclick="closeQR()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-bold text-slate-900 mb-1" id="qrTitle">Vehicle QR</h3>
+                <p class="text-sm text-slate-500">Scan to log movement</p>
+            </div>
+            <div id="qrcode" class="flex justify-center p-4 bg-white border border-slate-100 rounded-xl"></div>
+        </div>
+    </div>
+
+    <script>
+        function showQR(busNumber) {
+            document.getElementById('qrModal').classList.remove('hidden');
+            document.getElementById('qrModal').classList.add('flex');
+            document.getElementById('qrTitle').innerText = busNumber;
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: busNumber,
+                width: 200,
+                height: 200,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function closeQR() {
+            document.getElementById('qrModal').classList.add('hidden');
+            document.getElementById('qrModal').classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
