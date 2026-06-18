@@ -2,138 +2,186 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }</style>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen pb-10">
-
-    <header class="bg-white px-6 py-4 shadow-sm sticky top-0 z-50 flex justify-between items-center border-b border-gray-100">
-        <div>
-            <h1 class="text-xl font-bold text-indigo-900 tracking-tight">Scanner Terminal</h1>
-            <p class="text-xs text-gray-500 font-medium">Live Gateway Sync</p>
-        </div>
-        <a href="/logout" class="bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-bold shadow-sm border border-red-100 hover:bg-red-100 transition">Log Out</a>
-    </header>
-
-    <main class="max-w-md mx-auto p-4 mt-4">
-        
-        <div id="scan-view" class="bg-white p-4 rounded-3xl shadow-xl shadow-indigo-100/50 border border-gray-100 transition-all">
-            <div id="reader" class="rounded-2xl overflow-hidden bg-black aspect-square w-full shadow-inner border-4 border-indigo-50"></div>
-            <button onclick="showForm()" class="mt-6 w-full py-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl font-semibold transition-all">
-                Camera failed? Type Manually
-            </button>
-        </div>
-
-        <div id="form-view" class="hidden bg-white p-6 rounded-3xl shadow-xl shadow-indigo-100/50 border border-gray-100 space-y-6">
-            
+<body class="bg-slate-50 min-h-screen flex flex-col font-sans text-slate-800">
+    
+    <nav class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-8v4h8v-4zm-4-8a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </div>
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">Bus Plate Number</label>
-                <input type="text" id="bus_number" placeholder="e.g. GJ04 EA 2355" class="w-full bg-gray-50 border border-gray-200 text-xl font-bold text-center text-indigo-900 rounded-2xl px-4 py-4 uppercase focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all">
+                <h1 class="text-xl font-bold text-slate-900">Scanner Terminal</h1>
+                <p class="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Gateway Sync
+                </p>
             </div>
-
-            <div class="bg-gray-100 p-1 rounded-2xl flex relative">
-                <button id="dir_in" onclick="setOpt('dir', 'IN')" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 bg-white shadow-md text-indigo-600">Arriving (IN)</button>
-                <button id="dir_out" onclick="setOpt('dir', 'OUT')" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 text-gray-500">Departing (OUT)</button>
-            </div>
-
-            <div class="bg-gray-100 p-1 rounded-2xl flex relative">
-                <button id="load_filled" onclick="setOpt('load', 'Filled')" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 bg-white shadow-md text-emerald-600">With Passengers</button>
-                <button id="load_empty" onclick="setOpt('load', 'Empty')" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 text-gray-500">Empty / Deadhead</button>
-            </div>
-
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">Odometer / KM (Optional)</label>
-                <input type="number" id="km" placeholder="000000" class="w-full bg-gray-50 border border-gray-200 text-lg rounded-2xl px-4 py-3 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all">
-            </div>
-
-            <button onclick="submitData()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-200 transition-all active:scale-95 text-lg">
-                Confirm & Sync Record
-            </button>
         </div>
+        <a href="/logout" class="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-medium rounded-lg text-sm transition-colors">Log Out</a>
+    </nav>
 
-        <div id="success-view" class="hidden bg-white p-8 rounded-3xl shadow-xl shadow-emerald-100/50 border border-gray-100 text-center space-y-6 mt-10">
-            <div class="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-900">Record Saved!</h2>
-            <p class="text-gray-500 text-sm">The bus movement has been successfully logged to the database.</p>
+    <main class="flex-1 flex items-center justify-center p-6">
+        <div class="max-w-md w-full">
             
-            <button onclick="resetScanner()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 text-lg mt-4">
-                Scan Next Bus
-            </button>
-        </div>
+            <div id="camera-container" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-4">
+                <div id="reader" class="w-full rounded-xl overflow-hidden bg-black min-h-[300px]"></div>
+                
+                <button onclick="showManual()" class="w-full mt-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium rounded-xl transition-colors border border-slate-200">
+                    Camera failed? Type Manually
+                </button>
+            </div>
 
+            <div id="form-container" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">Log Movement</h2>
+                    <p class="text-sm text-slate-500">Confirm vehicle and status</p>
+                </div>
+
+                <form id="scanForm" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Bus Plate Number</label>
+                        <input type="text" id="bus_number" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg uppercase text-slate-900">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Direction</label>
+                            <select id="direction" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-700">
+                                <option value="IN">Arriving (IN)</option>
+                                <option value="OUT">Departing (OUT)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Passenger Load</label>
+                            <select id="load" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-700">
+                                <option value="Filled">Filled</option>
+                                <option value="Empty">Empty</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Odometer (KM)</label>
+                        <div class="relative">
+                            <input type="number" id="km" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg text-slate-900">
+                            <span class="absolute right-4 top-3 text-slate-400 font-medium">km</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex gap-3">
+                        <button type="button" onclick="resetScanner()" class="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" id="submitBtn" class="w-2/3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-indigo-200">
+                            Confirm & Sync
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="success-msg" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-700 p-6 rounded-2xl text-center shadow-sm">
+                <svg class="w-16 h-16 mx-auto mb-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h3 class="text-xl font-bold mb-1">Record Synced!</h3>
+                <p class="text-emerald-600 text-sm">Database successfully updated.</p>
+                <button onclick="resetScanner()" class="mt-6 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors">
+                    Scan Next Bus
+                </button>
+            </div>
+
+        </div>
     </main>
 
     <script>
-        let dir = 'IN', load = 'Filled', scanner;
+        let html5QrCode;
 
-        function startScanner() {
-            scanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: { width: 250, height: 250 } });
-            scanner.render((text) => {
-                document.getElementById('bus_number').value = text;
-                showForm();
+        // Force initialize the rear camera instantly on page load
+        window.onload = function() {
+            html5QrCode = new Html5Qrcode("reader");
+            startCamera();
+        };
+
+        function startCamera() {
+            // facingMode: "environment" forces the rear camera
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                (decodedText) => {
+                    // What happens when a QR is successfully scanned
+                    html5QrCode.stop().then(() => {
+                        document.getElementById('bus_number').value = decodedText;
+                        document.getElementById('camera-container').classList.add('hidden');
+                        document.getElementById('form-container').classList.remove('hidden');
+                    });
+                },
+                (errorMessage) => {
+                    // Ignore background scan errors
+                }
+            ).catch((err) => {
+                console.error("Camera access failed", err);
+                // If they are on a desktop with no rear camera, fallback to manual automatically
+                showManual();
             });
         }
 
-        function showForm() {
-            if(scanner) scanner.clear();
-            document.getElementById('scan-view').classList.add('hidden');
-            document.getElementById('success-view').classList.add('hidden');
-            document.getElementById('form-view').classList.remove('hidden');
-        }
-
-        function setOpt(type, val) {
-            if (type === 'dir') {
-                dir = val;
-                document.getElementById('dir_in').className = val === 'IN' ? "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 bg-white shadow-md text-indigo-600" : "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 text-gray-500";
-                document.getElementById('dir_out').className = val === 'OUT' ? "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 bg-white shadow-md text-indigo-600" : "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 text-gray-500";
+        function showManual() {
+            if(html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('camera-container').classList.add('hidden');
+                    document.getElementById('form-container').classList.remove('hidden');
+                });
             } else {
-                load = val;
-                document.getElementById('load_filled').className = val === 'Filled' ? "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 bg-white shadow-md text-emerald-600" : "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 text-gray-500";
-                document.getElementById('load_empty').className = val === 'Empty' ? "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 bg-white shadow-md text-emerald-600" : "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 text-gray-500";
+                document.getElementById('camera-container').classList.add('hidden');
+                document.getElementById('form-container').classList.remove('hidden');
             }
         }
 
-        function submitData() {
-            fetch('/submit-scan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    bus_number: document.getElementById('bus_number').value,
-                    direction: dir, load: load, km: document.getElementById('km').value
-                })
-            }).then(r => r.json()).then(res => {
-                if(res.success) {
-                    // Hide the form, show the success screen
-                    document.getElementById('form-view').classList.add('hidden');
-                    document.getElementById('success-view').classList.remove('hidden');
-                } else alert("Error: " + res.message);
-            });
-        }
-
         function resetScanner() {
-            // Clear inputs
-            document.getElementById('bus_number').value = '';
-            document.getElementById('km').value = '';
+            document.getElementById('form-container').classList.add('hidden');
+            document.getElementById('success-msg').classList.add('hidden');
+            document.getElementById('camera-container').classList.remove('hidden');
+            document.getElementById('scanForm').reset();
             
-            // Reset toggles to default
-            setOpt('dir', 'IN');
-            setOpt('load', 'Filled');
-
-            // Hide success screen, show camera
-            document.getElementById('success-view').classList.add('hidden');
-            document.getElementById('scan-view').classList.remove('hidden');
-            
-            startScanner();
+            // Restart the camera
+            startCamera();
         }
 
-        // Initialize camera on page load
-        startScanner();
+        // Handle Form Submission
+        document.getElementById('scanForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = 'Syncing...';
+            btn.disabled = true;
+
+            const payload = {
+                bus_number: document.getElementById('bus_number').value,
+                direction: document.getElementById('direction').value,
+                load: document.getElementById('load').value,
+                km: document.getElementById('km').value
+            };
+
+            try {
+                const res = await fetch('/submit-scan', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                
+                document.getElementById('form-container').classList.add('hidden');
+                document.getElementById('success-msg').classList.remove('hidden');
+            } catch (err) {
+                alert('Connection error. Please try again.');
+            } finally {
+                btn.innerText = 'Confirm & Sync';
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
