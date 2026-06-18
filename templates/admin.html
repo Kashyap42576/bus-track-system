@@ -33,18 +33,12 @@
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 flex items-center justify-between">
             <div>
                 <h2 class="text-lg font-bold text-slate-900">Register New Vehicle</h2>
-                <p class="text-sm text-slate-500">Add a bus and select its vehicle type.</p>
+                <p class="text-sm text-slate-500">Add a bus and specify its vehicle type.</p>
             </div>
             <form action="/admin/add-bus" method="POST" class="flex gap-3">
                 <input type="text" name="bus_number" placeholder="E.G. GJ04 EA 2355" required class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48 uppercase">
                 
-                <select name="vehicle_type" class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-700">
-                    <option value="Standard Bus">Standard Bus</option>
-                    <option value="Luxury Coach">Luxury Coach</option>
-                    <option value="Double Decker">Double Decker</option>
-                    <option value="Minibus">Minibus</option>
-                    <option value="Electric Bus (EV)">Electric Bus (EV)</option>
-                </select>
+                <input type="text" name="vehicle_type" placeholder="Type (Optional, e.g. EV)" class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48 text-sm text-slate-700">
 
                 <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap">Add to Fleet</button>
             </form>
