@@ -22,7 +22,6 @@ def get_sheet():
     scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     creds = Credentials.from_service_account_file('credentials.json', scopes=scopes)
     client = gspread.authorize(creds)
-    # Your brand new Google Sheet URL
     sheet_url = "https://docs.google.com/spreadsheets/d/10eMYLJPoN0VYySX2yeMuNhqF9zquGS7_oYtyKv-WSGM/edit"
     return client.open_by_url(sheet_url)
 
@@ -124,12 +123,14 @@ def admin_dashboard():
 def add_bus():
     if "user" in session and session["role"] in ["Super_Admin", "Fleet_Admin", "Operations_Admin"]:
         bus_number = request.form.get("bus_number").strip().upper()
-        vehicle_type = request.form.get("vehicle_type", "Standard Bus").strip()
-        
+        # Grab the text input, default to "N/A" if they left it blank
+        vehicle_type = request.form.get("vehicle_type", "").strip()
+        if not vehicle_type:
+            vehicle_type = "N/A"
+            
         try:
             sheet = get_sheet()
             bus_id = generate_id("BUS")
-            # Writing 4 columns now to include Vehicle Type
             sheet.worksheet("Buses").append_row([bus_id, bus_number, "Active", vehicle_type])
             
             try:
