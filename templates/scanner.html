@@ -94,26 +94,51 @@
     <script>
         let html5QrCode;
 
-        // Force initialize the rear camera instantly on page load
+        // Initialize on page load
         window.onload = function() {
             html5QrCode = new Html5Qrcode("reader");
-            startCamera();
+            initCamera();
         };
 
-        function startCamera() {
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText) => {
-                    html5QrCode.stop().then(() => {
-                        document.getElementById('bus_number').value = decodedText;
-                        document.getElementById('camera-container').classList.add('hidden');
-                        document.getElementById('form-container').classList.remove('hidden');
+        function initCamera() {
+            // Step 1: Explicitly request camera permissions FIRST
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length > 0) {
+                    
+                    // Step 2: Try to find a back camera. If none exists (like on a laptop), use the first available.
+                    let cameraId = devices[0].id; 
+                    for (let i = 0; i < devices.length; i++) {
+                        if (devices[i].label.toLowerCase().includes("back") || 
+                            devices[i].label.toLowerCase().includes("environment")) {
+                            cameraId = devices[i].id;
+                            break;
+                        }
+                    }
+                    
+                    // Step 3: Start scanning with the selected camera
+                    html5QrCode.start(
+                        cameraId, 
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        (decodedText) => {
+                            // On successful scan, stop camera and show form
+                            html5QrCode.stop().then(() => {
+                                document.getElementById('bus_number').value = decodedText;
+                                document.getElementById('camera-container').classList.add('hidden');
+                                document.getElementById('form-container').classList.remove('hidden');
+                            });
+                        },
+                        (errorMessage) => { /* Ignore background scan noise */ }
+                    ).catch((err) => {
+                        console.error("Scanner failed to start", err);
+                        showManual();
                     });
-                },
-                (errorMessage) => { /* Ignore errors */ }
-            ).catch((err) => {
-                console.error("Camera access failed", err);
+                } else {
+                    console.error("No cameras found on device.");
+                    showManual(); 
+                }
+            }).catch(err => {
+                // User clicked "Block" or hardware is disabled
+                console.error("Camera permissions denied", err);
                 showManual();
             });
         }
@@ -140,7 +165,8 @@
             setDirection('IN');
             setLoad('Filled');
             
-            startCamera();
+            // Restart the camera properly
+            initCamera();
         }
 
         // Custom UI Toggle Logic
