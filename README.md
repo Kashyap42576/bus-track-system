@@ -31,5 +31,4 @@ To run this project locally, you will need:
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/YOUR-USERNAME/bus-tracker.git](https://github.com/YOUR-USERNAME/bus-tracker.git)
-   cd bus-tracker
+   git clone [https://github.com/ayushpatel2007/bus-track-system.git]
