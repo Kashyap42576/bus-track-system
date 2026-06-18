@@ -11,7 +11,6 @@ app.secret_key = "super_secret_secure_key_for_bus_tracker"
 
 # --- TIMEZONE FIX FOR INDIA (IST) ---
 def get_ist_now():
-    # Grab the server's UTC time and explicitly add 5 hours & 30 mins
     utc_now = datetime.datetime.now(datetime.timezone.utc)
     return utc_now + datetime.timedelta(hours=5, minutes=30)
 
@@ -23,7 +22,8 @@ def get_sheet():
     scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     creds = Credentials.from_service_account_file('credentials.json', scopes=scopes)
     client = gspread.authorize(creds)
-    sheet_url = "https://docs.google.com/spreadsheets/d/1nVdtY1NwTOT0sl5T3pOPKxGY_kqsKKLsrB9H455Spdg/edit"
+    # Your brand new Google Sheet URL
+    sheet_url = "https://docs.google.com/spreadsheets/d/10eMYLJPoN0VYySX2yeMuNhqF9zquGS7_oYtyKv-WSGM/edit"
     return client.open_by_url(sheet_url)
 
 # --- LOGIN & ROUTING ---
@@ -124,14 +124,17 @@ def admin_dashboard():
 def add_bus():
     if "user" in session and session["role"] in ["Super_Admin", "Fleet_Admin", "Operations_Admin"]:
         bus_number = request.form.get("bus_number").strip().upper()
+        vehicle_type = request.form.get("vehicle_type", "Standard Bus").strip()
+        
         try:
             sheet = get_sheet()
             bus_id = generate_id("BUS")
-            sheet.worksheet("Buses").append_row([bus_id, bus_number, "Active"])
+            # Writing 4 columns now to include Vehicle Type
+            sheet.worksheet("Buses").append_row([bus_id, bus_number, "Active", vehicle_type])
             
             try:
                 sheet.worksheet("Audit_Logs").append_row([
-                    generate_id("LOG"), get_ist_now().strftime("%Y-%m-%d %H:%M:%S"), session["user"], "Add Bus", f"Added {bus_number}"
+                    generate_id("LOG"), get_ist_now().strftime("%Y-%m-%d %H:%M:%S"), session["user"], "Add Bus", f"Added {bus_number} ({vehicle_type})"
                 ])
             except:
                 pass
