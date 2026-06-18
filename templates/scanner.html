@@ -24,70 +24,66 @@
         <a href="/logout" class="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-medium rounded-lg text-sm transition-colors">Log Out</a>
     </nav>
 
-    <main class="flex-1 flex items-center justify-center p-6">
+    <main class="flex-1 flex items-center justify-center p-4">
         <div class="max-w-md w-full">
             
-            <div id="camera-container" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-4">
-                <div id="reader" class="w-full rounded-xl overflow-hidden bg-black min-h-[300px]"></div>
-                
-                <button onclick="showManual()" class="w-full mt-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium rounded-xl transition-colors border border-slate-200">
+            <div id="camera-container" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 mb-4">
+                <div id="reader" class="w-full rounded-2xl overflow-hidden bg-black min-h-[300px]"></div>
+                <button onclick="showManual()" class="w-full mt-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium rounded-2xl transition-colors border border-slate-200">
                     Camera failed? Type Manually
                 </button>
             </div>
 
-            <div id="form-container" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-slate-900">Log Movement</h2>
-                    <p class="text-sm text-slate-500">Confirm vehicle and status</p>
-                </div>
-
-                <form id="scanForm" class="space-y-6">
+            <div id="form-container" class="hidden bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <form id="scanForm" class="space-y-5">
+                    
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Bus Plate Number</label>
-                        <input type="text" id="bus_number" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg uppercase text-slate-900">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Bus Plate Number</label>
+                        <input type="text" id="bus_number" placeholder="E.G. GJ04 EA 2355" required 
+                               class="w-full text-center px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg text-slate-500 placeholder-slate-400 uppercase shadow-inner transition-all">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Direction</label>
-                            <select id="direction" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-700">
-                                <option value="IN">Arriving (IN)</option>
-                                <option value="OUT">Departing (OUT)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Passenger Load</label>
-                            <select id="load" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-700">
-                                <option value="Filled">Filled</option>
-                                <option value="Empty">Empty</option>
-                            </select>
-                        </div>
+                    <div class="bg-slate-100 p-1.5 rounded-2xl flex">
+                        <button type="button" id="btn-in" onclick="setDirection('IN')" class="flex-1 py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all">
+                            Arriving (IN)
+                        </button>
+                        <button type="button" id="btn-out" onclick="setDirection('OUT')" class="flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700">
+                            Departing (OUT)
+                        </button>
+                        <input type="hidden" id="direction" value="IN">
+                    </div>
+
+                    <div class="bg-slate-100 p-1.5 rounded-2xl flex">
+                        <button type="button" id="btn-filled" onclick="setLoad('Filled')" class="flex-1 py-3 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all">
+                            With Passengers
+                        </button>
+                        <button type="button" id="btn-empty" onclick="setLoad('Empty')" class="flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700">
+                            Empty / Deadhead
+                        </button>
+                        <input type="hidden" id="load" value="Filled">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Odometer (KM)</label>
-                        <div class="relative">
-                            <input type="number" id="km" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg text-slate-900">
-                            <span class="absolute right-4 top-3 text-slate-400 font-medium">km</span>
-                        </div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Odometer / KM (Optional)</label>
+                        <input type="number" id="km" placeholder="000000" 
+                               class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-lg text-slate-500 placeholder-slate-400 shadow-inner transition-all">
                     </div>
 
-                    <div class="pt-2 flex gap-3">
-                        <button type="button" onclick="resetScanner()" class="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit" id="submitBtn" class="w-2/3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-indigo-200">
-                            Confirm & Sync
-                        </button>
-                    </div>
+                    <button type="submit" id="submitBtn" class="w-full py-4 mt-2 bg-[#10b981] hover:bg-[#059669] text-white font-bold rounded-2xl transition-colors shadow-lg shadow-emerald-200 text-lg">
+                        Confirm & Sync Record
+                    </button>
+                    
+                    <button type="button" onclick="resetScanner()" class="w-full py-3 text-slate-400 hover:text-slate-600 font-medium text-sm transition-colors">
+                        Cancel & Return to Camera
+                    </button>
                 </form>
             </div>
 
-            <div id="success-msg" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-700 p-6 rounded-2xl text-center shadow-sm">
+            <div id="success-msg" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-700 p-6 rounded-3xl text-center shadow-sm">
                 <svg class="w-16 h-16 mx-auto mb-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <h3 class="text-xl font-bold mb-1">Record Synced!</h3>
                 <p class="text-emerald-600 text-sm">Database successfully updated.</p>
-                <button onclick="resetScanner()" class="mt-6 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors">
+                <button onclick="resetScanner()" class="mt-6 w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl transition-colors shadow-lg shadow-emerald-200">
                     Scan Next Bus
                 </button>
             </div>
@@ -105,27 +101,19 @@
         };
 
         function startCamera() {
-            // facingMode: "environment" forces the rear camera
             html5QrCode.start(
                 { facingMode: "environment" }, 
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
-                },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
                 (decodedText) => {
-                    // What happens when a QR is successfully scanned
                     html5QrCode.stop().then(() => {
                         document.getElementById('bus_number').value = decodedText;
                         document.getElementById('camera-container').classList.add('hidden');
                         document.getElementById('form-container').classList.remove('hidden');
                     });
                 },
-                (errorMessage) => {
-                    // Ignore background scan errors
-                }
+                (errorMessage) => { /* Ignore errors */ }
             ).catch((err) => {
                 console.error("Camera access failed", err);
-                // If they are on a desktop with no rear camera, fallback to manual automatically
                 showManual();
             });
         }
@@ -148,11 +136,37 @@
             document.getElementById('camera-container').classList.remove('hidden');
             document.getElementById('scanForm').reset();
             
-            // Restart the camera
+            // Reset pills to default state
+            setDirection('IN');
+            setLoad('Filled');
+            
             startCamera();
         }
 
-        // Handle Form Submission
+        // Custom UI Toggle Logic
+        function setDirection(val) {
+            document.getElementById('direction').value = val;
+            if(val === 'IN') {
+                document.getElementById('btn-in').className = "flex-1 py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all";
+                document.getElementById('btn-out').className = "flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
+            } else {
+                document.getElementById('btn-out').className = "flex-1 py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all";
+                document.getElementById('btn-in').className = "flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
+            }
+        }
+
+        function setLoad(val) {
+            document.getElementById('load').value = val;
+            if(val === 'Filled') {
+                document.getElementById('btn-filled').className = "flex-1 py-3 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all";
+                document.getElementById('btn-empty').className = "flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
+            } else {
+                document.getElementById('btn-empty').className = "flex-1 py-3 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all";
+                document.getElementById('btn-filled').className = "flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
+            }
+        }
+
+        // Form Submission
         document.getElementById('scanForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -178,7 +192,7 @@
             } catch (err) {
                 alert('Connection error. Please try again.');
             } finally {
-                btn.innerText = 'Confirm & Sync';
+                btn.innerText = 'Confirm & Sync Record';
                 btn.disabled = false;
             }
         });
