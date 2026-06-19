@@ -37,9 +37,7 @@
             </div>
             <form action="/admin/add-bus" method="POST" class="flex gap-3">
                 <input type="text" name="bus_number" placeholder="E.G. GJ04 EA 2355" required class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48 uppercase">
-                
                 <input type="text" name="vehicle_type" placeholder="Type (Optional, e.g. EV)" class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48 text-sm text-slate-700">
-
                 <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap">Add to Fleet</button>
             </form>
         </div>
@@ -82,11 +80,12 @@
                     <table class="min-w-full divide-y divide-slate-100">
                         <thead class="bg-slate-50 sticky top-0">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Timestamp</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Time</th>
                                 <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Vehicle</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Direction</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Dir.</th>
                                 <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Load</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">KM Reading</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Route</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">KM</th>
                                 <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Operator</th>
                             </tr>
                         </thead>
@@ -109,8 +108,10 @@
                                     <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-slate-100 text-slate-600">Empty</span>
                                     {% endif %}
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-700">{{ record.Route }}</td>
+                                
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
-                                    {{ record.KM_Reading }} <span class="text-xs text-slate-400 font-normal">km</span>
+                                    {{ record.KM_Reading }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ record.Scanned_By }}</td>
                             </tr>
@@ -173,15 +174,10 @@
             document.getElementById('qrTitle').innerText = busNumber;
             document.getElementById('qrcode').innerHTML = "";
             new QRCode(document.getElementById("qrcode"), {
-                text: busNumber,
-                width: 200,
-                height: 200,
-                colorDark : "#0f172a",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+                text: busNumber, width: 200, height: 200,
+                colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
             });
         }
-
         function closeQR() {
             document.getElementById('qrModal').classList.add('hidden');
             document.getElementById('qrModal').classList.remove('flex');
