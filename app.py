@@ -87,9 +87,10 @@ def submit_scan():
         record_id = generate_id("REC")
         timestamp = get_ist_now().strftime("%Y-%m-%d %H:%M:%S")
         
+        # ADDED ROUTE TO THE DATA ROW
         sheet.worksheet("Scan_Records").append_row([
             record_id, timestamp, data.get("bus_number").strip().upper(),
-            data.get("direction"), data.get("load"), data.get("km", ""), session["user"]
+            data.get("direction"), data.get("load"), data.get("route", "Regular"), data.get("km", ""), session["user"]
         ])
         return jsonify({"success": True, "message": "Saved successfully!"})
     except Exception as e:
@@ -123,7 +124,6 @@ def admin_dashboard():
 def add_bus():
     if "user" in session and session["role"] in ["Super_Admin", "Fleet_Admin", "Operations_Admin"]:
         bus_number = request.form.get("bus_number").strip().upper()
-        # Grab the text input, default to "N/A" if they left it blank
         vehicle_type = request.form.get("vehicle_type", "").strip()
         if not vehicle_type:
             vehicle_type = "N/A"
