@@ -43,24 +43,32 @@
                                class="w-full text-center px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg text-slate-500 placeholder-slate-400 uppercase shadow-inner transition-all">
                     </div>
 
-                    <div class="bg-slate-100 p-1.5 rounded-2xl flex">
-                        <button type="button" id="btn-in" onclick="setDirection('IN')" class="flex-1 py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all">
-                            Arriving (IN)
-                        </button>
-                        <button type="button" id="btn-out" onclick="setDirection('OUT')" class="flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700">
-                            Departing (OUT)
-                        </button>
-                        <input type="hidden" id="direction" value="IN">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="bg-slate-100 p-1.5 rounded-2xl flex flex-col gap-1">
+                                <button type="button" id="btn-in" onclick="setDirection('IN')" class="py-2.5 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all">IN</button>
+                                <button type="button" id="btn-out" onclick="setDirection('OUT')" class="py-2.5 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700">OUT</button>
+                                <input type="hidden" id="direction" value="IN">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="bg-slate-100 p-1.5 rounded-2xl flex flex-col gap-1">
+                                <button type="button" id="btn-filled" onclick="setLoad('Filled')" class="py-2.5 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all">Filled</button>
+                                <button type="button" id="btn-empty" onclick="setLoad('Empty')" class="py-2.5 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700">Empty</button>
+                                <input type="hidden" id="load" value="Filled">
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="bg-slate-100 p-1.5 rounded-2xl flex">
-                        <button type="button" id="btn-filled" onclick="setLoad('Filled')" class="flex-1 py-3 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all">
-                            With Passengers
-                        </button>
-                        <button type="button" id="btn-empty" onclick="setLoad('Empty')" class="flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700">
-                            Empty / Deadhead
-                        </button>
-                        <input type="hidden" id="load" value="Filled">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Route Category</label>
+                        <div class="bg-slate-100 p-1.5 rounded-2xl grid grid-cols-2 gap-1">
+                            <button type="button" id="route-regular" onclick="setRoute('Regular')" class="py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-xs sm:text-sm transition-all">Regular</button>
+                            <button type="button" id="route-labour" onclick="setRoute('Labour')" class="py-3 text-slate-500 font-bold rounded-xl text-xs sm:text-sm transition-all hover:text-slate-700">Labour</button>
+                            <button type="button" id="route-industrial" onclick="setRoute('Industrial Visit')" class="py-3 text-slate-500 font-bold rounded-xl text-xs sm:text-sm transition-all hover:text-slate-700">Industrial Visit</button>
+                            <button type="button" id="route-exam" onclick="setRoute('Exam / Event')" class="py-3 text-slate-500 font-bold rounded-xl text-xs sm:text-sm transition-all hover:text-slate-700">Exam / Event</button>
+                            <input type="hidden" id="route" value="Regular">
+                        </div>
                     </div>
 
                     <div>
@@ -94,18 +102,14 @@
     <script>
         let html5QrCode;
 
-        // Initialize on page load
         window.onload = function() {
             html5QrCode = new Html5Qrcode("reader");
             initCamera();
         };
 
         function initCamera() {
-            // Step 1: Explicitly request camera permissions FIRST
             Html5Qrcode.getCameras().then(devices => {
                 if (devices && devices.length > 0) {
-                    
-                    // Step 2: Try to find a back camera. If none exists (like on a laptop), use the first available.
                     let cameraId = devices[0].id; 
                     for (let i = 0; i < devices.length; i++) {
                         if (devices[i].label.toLowerCase().includes("back") || 
@@ -114,33 +118,20 @@
                             break;
                         }
                     }
-                    
-                    // Step 3: Start scanning with the selected camera
                     html5QrCode.start(
                         cameraId, 
                         { fps: 10, qrbox: { width: 250, height: 250 } },
                         (decodedText) => {
-                            // On successful scan, stop camera and show form
                             html5QrCode.stop().then(() => {
                                 document.getElementById('bus_number').value = decodedText;
                                 document.getElementById('camera-container').classList.add('hidden');
                                 document.getElementById('form-container').classList.remove('hidden');
                             });
                         },
-                        (errorMessage) => { /* Ignore background scan noise */ }
-                    ).catch((err) => {
-                        console.error("Scanner failed to start", err);
-                        showManual();
-                    });
-                } else {
-                    console.error("No cameras found on device.");
-                    showManual(); 
-                }
-            }).catch(err => {
-                // User clicked "Block" or hardware is disabled
-                console.error("Camera permissions denied", err);
-                showManual();
-            });
+                        (errorMessage) => { }
+                    ).catch((err) => { showManual(); });
+                } else { showManual(); }
+            }).catch(err => { showManual(); });
         }
 
         function showManual() {
@@ -161,38 +152,44 @@
             document.getElementById('camera-container').classList.remove('hidden');
             document.getElementById('scanForm').reset();
             
-            // Reset pills to default state
             setDirection('IN');
             setLoad('Filled');
-            
-            // Restart the camera properly
+            setRoute('Regular'); // Reset route to default
             initCamera();
         }
 
-        // Custom UI Toggle Logic
         function setDirection(val) {
             document.getElementById('direction').value = val;
-            if(val === 'IN') {
-                document.getElementById('btn-in').className = "flex-1 py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all";
-                document.getElementById('btn-out').className = "flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
-            } else {
-                document.getElementById('btn-out').className = "flex-1 py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all";
-                document.getElementById('btn-in').className = "flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
-            }
+            document.getElementById('btn-in').className = val === 'IN' ? "py-2.5 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all" : "py-2.5 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
+            document.getElementById('btn-out').className = val === 'OUT' ? "py-2.5 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-sm transition-all" : "py-2.5 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
         }
 
         function setLoad(val) {
             document.getElementById('load').value = val;
-            if(val === 'Filled') {
-                document.getElementById('btn-filled').className = "flex-1 py-3 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all";
-                document.getElementById('btn-empty').className = "flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
-            } else {
-                document.getElementById('btn-empty').className = "flex-1 py-3 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all";
-                document.getElementById('btn-filled').className = "flex-1 py-3 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
-            }
+            document.getElementById('btn-filled').className = val === 'Filled' ? "py-2.5 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all" : "py-2.5 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
+            document.getElementById('btn-empty').className = val === 'Empty' ? "py-2.5 bg-white text-emerald-600 font-bold rounded-xl shadow-sm text-sm transition-all" : "py-2.5 text-slate-500 font-bold rounded-xl text-sm transition-all hover:text-slate-700";
         }
 
-        // Form Submission
+        // NEW: Handle 4-way Route Toggle
+        function setRoute(val) {
+            document.getElementById('route').value = val;
+            const routes = [
+                { id: 'route-regular', value: 'Regular' },
+                { id: 'route-labour', value: 'Labour' },
+                { id: 'route-industrial', value: 'Industrial Visit' },
+                { id: 'route-exam', value: 'Exam / Event' }
+            ];
+            
+            routes.forEach(r => {
+                const btn = document.getElementById(r.id);
+                if (r.value === val) {
+                    btn.className = "py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-sm text-xs sm:text-sm transition-all";
+                } else {
+                    btn.className = "py-3 text-slate-500 font-bold rounded-xl text-xs sm:text-sm transition-all hover:text-slate-700";
+                }
+            });
+        }
+
         document.getElementById('scanForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -203,6 +200,7 @@
                 bus_number: document.getElementById('bus_number').value,
                 direction: document.getElementById('direction').value,
                 load: document.getElementById('load').value,
+                route: document.getElementById('route').value, // Send new route data
                 km: document.getElementById('km').value
             };
 
